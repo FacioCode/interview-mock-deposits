@@ -14,6 +14,9 @@ src/**/main.zip
 build/
 go.work.sum
 
+# DynamoDB Local artifacts
+dynamodb-local-metadata.json
+
 #IDE
 .idea
 .vscode

@@ -1,24 +1,24 @@
 package deposit
 
 import (
-	"interview_mock_deposits_go/deposit/src/domain"
+	"errors"
 	"os"
+	"strings"
+	"time"
+
+	"interview_mock_deposits_go/deposit/src/domain"
+	"interview_mock_deposits_go/utils/awsutil"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 var TableName = aws.String(os.Getenv("TABLE_NAME"))
 
-var DdbSvc *dynamodb.DynamoDB
+var DdbSvc = awsutil.NewDynamoClient()
 
-func init() {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
-	DdbSvc = dynamodb.New(sess)
-}
+var ErrDepositAlreadyExists = errors.New("deposit already exists")
 
 func CreateDeposit(request Transaction, requestId string) error {
 	return createDeposit(request, nil, requestId, domain.New)
@@ -33,13 +33,32 @@ func CreateDepositWithStatus(request Transaction, requestId string, status domai
 }
 
 func createDeposit(request Transaction, userData *UserData, requestId string, status domain.DepositStatus) error {
-	// TODO: replace with real implementation
-	_ = request.GenerateDepositId()
-	_ = request.GenerateIdempotencyKey()
-	return nil
+	newDeposit := Deposit{
+		DepositId:   request.GenerateDepositId(),
+		Status:      status,
+		Transaction: request,
+	}
+	if userData != nil && userData.Document != "" {
+		newDeposit.UserData = userData
+	}
+	return SaveDeposit(newDeposit, requestId)
 }
 
 func SaveDeposit(data Deposit, requestId string) error {
-	// TODO: replace with real implementation
-	return nil
+	item, err := dynamodbattribute.MarshalMap(data)
+	if err != nil {
+		return err
+	}
+	item["depositId"] = &dynamodb.AttributeValue{S: aws.String(data.DepositId)}
+	item["createdAt"] = &dynamodb.AttributeValue{S: aws.String(time.Now().UTC().Format(time.RFC3339))}
+
+	_, err = DdbSvc.PutItem(&dynamodb.PutItemInput{
+		Item:                item,
+		TableName:           TableName,
+		ConditionExpression: aws.String("attribute_not_exists(depositId)"),
+	})
+	if err != nil && strings.Contains(err.Error(), "ConditionalCheckFailedException") {
+		return ErrDepositAlreadyExists
+	}
+	return err
 }

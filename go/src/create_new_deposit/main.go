@@ -15,10 +15,6 @@ import (
 
 var contextGetter = lambdacontext.FromContext
 
-// CreateDepositFunc is a package-level indirection so tests can stub the
-// downstream call without spinning up real services.
-var CreateDepositFunc = create_deposit.CreateDeposit
-
 func main() {
 	lambda.Start(HandleRequest)
 }
@@ -53,5 +49,5 @@ func HandleRequest(ctx context.Context, event awsevents.CloudWatchEvent) error {
 		return nil
 	}
 
-	return CreateDepositFunc(detail, requestId)
+	return create_deposit.CreateDeposit(detail, requestId)
 }

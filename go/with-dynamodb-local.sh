@@ -3,9 +3,10 @@
 # Setup variables
 
 TABLE_NAME="InterviewMockDepositsTable"
-PK="depositId"
-SK="itemType"
-GSI="" # Add GSI names separated by space, e.g. "GSI1 GSI2"
+PARTITION_KEY="depositId"
+TTL_ATTR="ttl"
+# GSIs: each entry is "indexName:attributeName"
+GSIS=("userIndex:userId" "endToEndIdIndex:endToEndId")
 
 # End setup variables
 
@@ -96,9 +97,9 @@ setup_dynamodb() {
     return 0
   fi
 
-  # Check if we're in CI environment
-  if [ -n "$CI" ]; then
-    log_info "CI environment detected, downloading DynamoDB Local..."
+  # Auto-download for CI / Codespaces / first-time setup
+  if [ -n "$CI" ] || [ -n "$CODESPACES" ] || [ ! -t 0 ]; then
+    log_info "Downloading DynamoDB Local..."
     mkdir -p "$DYNAMODB_DIR"
     curl -L https://d1ni2b6xgvw0s0.cloudfront.net/v2.x/dynamodb_local_latest.tar.gz | tar -xz -C "$DYNAMODB_DIR"
     if [ ! -f "$DYNAMODB_JAR" ]; then
@@ -109,7 +110,6 @@ setup_dynamodb() {
     return 0
   fi
 
-  # Not in CI and not found
   log_error "DynamoDB Local not found!"
   log_error "Please install it via Homebrew: brew install dynamodb-local"
   exit 1
@@ -124,7 +124,6 @@ start_dynamodb() {
 
   log_info "Starting DynamoDB Local on port $DYNAMODB_PORT..."
 
-  # Try using dynamodb-local command first
   if command -v dynamodb-local > /dev/null 2>&1; then
     nohup dynamodb-local -sharedDb -dbPath "$DYNAMODB_DB_PATH" -port "$DYNAMODB_PORT" > /dev/null 2>&1 &
     echo $! > "$DYNAMODB_PID_FILE"
@@ -151,53 +150,55 @@ start_dynamodb() {
   fi
 
   log_info "DynamoDB Local started successfully"
-
-  echo $TABLE_NAME
 }
 
-# Function to create table
+# Build the JSON --global-secondary-indexes argument from the GSIS array.
+gsi_json() {
+  local entries=()
+  for gsi in "${GSIS[@]}"; do
+    local name="${gsi%%:*}"
+    local attr="${gsi##*:}"
+    entries+=("{\"IndexName\":\"$name\",\"KeySchema\":[{\"AttributeName\":\"$attr\",\"KeyType\":\"HASH\"}],\"Projection\":{\"ProjectionType\":\"ALL\"},\"ProvisionedThroughput\":{\"ReadCapacityUnits\":5,\"WriteCapacityUnits\":5}}")
+  done
+  local IFS=','
+  echo "[${entries[*]}]"
+}
+
+# Build the --attribute-definitions argument: PK + each GSI's hash attribute.
+attribute_defs() {
+  local args=("AttributeName=$PARTITION_KEY,AttributeType=S")
+  for gsi in "${GSIS[@]}"; do
+    local attr="${gsi##*:}"
+    args+=("AttributeName=$attr,AttributeType=S")
+  done
+  echo "${args[@]}"
+}
+
+# Create the application table to match CDK: PK depositId, two GSIs, TTL.
 create_table() {
-  table=$1
-  pk=$2
-  sk=$3
-  IFS=' ' read -ra GSI_ARRAY <<< "$4"
+  log_info "Creating table: $TABLE_NAME"
 
-  log_info "Creating table: $table"
-
-  # Check if table already exists
-  if aws dynamodb describe-table --table-name "$table" --endpoint-url "$AWS_ENDPOINT_URL_DYNAMODB" > /dev/null 2>&1; then
-    log_info "Table $table already exists"
+  if aws dynamodb describe-table --table-name "$TABLE_NAME" --endpoint-url "$AWS_ENDPOINT_URL_DYNAMODB" > /dev/null 2>&1; then
+    log_info "Table $TABLE_NAME already exists"
     return 0
   fi
 
-  # Create table
   aws dynamodb create-table \
-    --table-name "$table" \
-    --key-schema \
-        AttributeName="$pk",KeyType=HASH \
-        AttributeName="$sk",KeyType=RANGE \
-    --attribute-definitions \
-        AttributeName="$pk",AttributeType=S \
-        AttributeName="$sk",AttributeType=S \
+    --table-name "$TABLE_NAME" \
+    --key-schema AttributeName="$PARTITION_KEY",KeyType=HASH \
+    --attribute-definitions $(attribute_defs) \
+    --global-secondary-indexes "$(gsi_json)" \
     --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
-    --table-class STANDARD \
     --endpoint-url "$AWS_ENDPOINT_URL_DYNAMODB" > /dev/null
 
-  # Wait for table to be ready before adding GSIs
-  aws dynamodb wait table-exists --table-name "$table" --endpoint-url "$AWS_ENDPOINT_URL_DYNAMODB"
+  aws dynamodb wait table-exists --table-name "$TABLE_NAME" --endpoint-url "$AWS_ENDPOINT_URL_DYNAMODB"
 
-  for index in "${GSI_ARRAY[@]}"; do
-    log_info "\tGSI $index"
-    aws dynamodb update-table \
-      --table-name "$table" \
-      --attribute-definitions AttributeName=$index,AttributeType=S AttributeName=$sk,AttributeType=S \
-      --global-secondary-index-updates \
-        '[{"Create":{"IndexName":"'$index'","KeySchema":[{"AttributeName":"'$index'","KeyType":"HASH"},{"AttributeName":"'$sk'","KeyType":"RANGE"}],"Projection":{"ProjectionType":"ALL"},"ProvisionedThroughput":{"ReadCapacityUnits":5,"WriteCapacityUnits":5}}}]' \
-      --endpoint-url "$AWS_ENDPOINT_URL_DYNAMODB" > /dev/null
-  done
+  aws dynamodb update-time-to-live \
+    --table-name "$TABLE_NAME" \
+    --time-to-live-specification "Enabled=true, AttributeName=$TTL_ATTR" \
+    --endpoint-url "$AWS_ENDPOINT_URL_DYNAMODB" > /dev/null
 
-  log_info "Table $table created successfully"
-  echo -e
+  log_info "Table $TABLE_NAME created"
 }
 
 # Function to run the command
@@ -209,8 +210,6 @@ run_command() {
   fi
 
   log_info "Running command: $*"
-
-  # Run the command
   "$@"
 }
 
@@ -230,13 +229,10 @@ trap cleanup EXIT INT TERM
 main() {
   setup_dynamodb
   start_dynamodb
-
-  # create_table TABLE_NAME PK SK ["GSI1 GSI2..."]
-  create_table $TABLE_NAME $PK $SK "$GSI"
+  create_table
 
   if [ $# -eq 0 ]; then
     log_info "No command provided. DynamoDB Local will continue running indefinitely..."
-    # Keep process running indefinitely
     while true; do
       sleep 3600
     done

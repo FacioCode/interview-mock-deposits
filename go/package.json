@@ -12,7 +12,8 @@
     "watch": "tsc -w",
     "test": "npm run test:app",
     "test:cdk": "jest",
-    "test:app": "go test -p 1 -coverprofile=coverage.txt -covermode=atomic ./src/...",
+    "test:app": "./with-dynamodb-local.sh go test -p 1 -coverprofile=coverage.txt -covermode=atomic ./src/...",
+    "test:unit": "go test -p 1 ./src/...",
     "cdk": "cdk"
   },
   "devDependencies": {

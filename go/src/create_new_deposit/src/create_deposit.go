@@ -28,8 +28,15 @@ func CreateDeposit(event events.PendingTransactionEvent, requestId string) error
 		Amount:        amount,
 	}
 
-	// TODO: replace with real user-data fetch (customer service + bank account lookup)
-	userData := deposit.UserData{}
+	userData := deposit.UserData{
+		Name:     event.Name,
+		Document: event.Document,
+		BankAccount: deposit.BankAccount{
+			Bank:    event.BankAccount.Bank,
+			Branch:  event.BankAccount.Branch,
+			Account: event.BankAccount.Account,
+		},
+	}
 
 	return deposit.CreateDepositWithUserData(transaction, userData, requestId)
 }

@@ -11,11 +11,22 @@ const (
 )
 
 type DepositRequestedEvent struct {
-	Id string `json:"id"`
+	Id            string `json:"id"`
+	TransactionId string `json:"transactionId"`
+	CustomerId    string `json:"customerId"`
 }
 
 type PendingTransactionEvent struct {
-	TransactionId string `json:"transactionId"`
-	CustomerId    string `json:"customerId"`
-	Amount        string `json:"amount"`
+	TransactionId string      `json:"transactionId"`
+	CustomerId    string      `json:"customerId"`
+	Amount        string      `json:"amount"`
+	Name          string      `json:"name"`
+	Document      string      `json:"document"`
+	BankAccount   BankAccount `json:"bankAccount"`
+}
+
+type BankAccount struct {
+	Bank    string `json:"bank"`
+	Branch  string `json:"branch"`
+	Account string `json:"account"`
 }

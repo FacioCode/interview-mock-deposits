@@ -1,10 +1,10 @@
 package webhook
 
 const (
-	DONE         = "DONE"
-	FAILED       = "FAILED"
-	RETURNED     = "RETURNED"
-	TRANSFER_OBJ = "Transfer"
+	DONE        = "DONE"
+	FAILED      = "FAILED"
+	RETURNED    = "RETURNED"
+	DEPOSIT_OBJ = "Deposits"
 )
 
 type Body struct {

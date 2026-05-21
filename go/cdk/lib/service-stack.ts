@@ -1,7 +1,7 @@
 import { App, Stack, StackProps, Duration } from 'aws-cdk-lib'
 import { Table, AttributeType } from 'aws-cdk-lib/aws-dynamodb'
 import { StartingPosition } from 'aws-cdk-lib/aws-lambda'
-import { DomainNameAttributes } from 'aws-cdk-lib/aws-apigateway/lib/domain-name'
+import { DomainNameAttributes } from 'aws-cdk-lib/aws-apigateway'
 import * as awsApigateway from 'aws-cdk-lib/aws-apigateway'
 import * as awsIam from 'aws-cdk-lib/aws-iam'
 import * as awsEvents from 'aws-cdk-lib/aws-events'
@@ -17,6 +17,10 @@ export interface ApplicationStackProps {
 const TABLE_NAME = 'InterviewMockDepositsTable'
 const BASE_PATH = 'deposits'
 const EVENT_BUS_NAME = 'InterviewMockDepositsBus'
+
+const PENDING_TRANSACTION_SOURCE = 'interview.mock.transactions'
+const PENDING_TRANSACTION_DETAIL_TYPE = 'transaction-pending'
+
 const EVENT_SOURCE = 'interview.mock.deposits'
 const DEPOSIT_REQUESTED_DETAIL_TYPE = 'deposit-requested'
 
@@ -36,7 +40,7 @@ export class ServiceStack extends Stack {
     const api = utils.createApiGateway(this, this.id + 'Api', BASE_PATH, this.appProps?.domainName)
     const eventBus = new awsEvents.EventBus(this, 'eventBus', { eventBusName: EVENT_BUS_NAME })
 
-    this.createDepositLambda(api, table, env)
+    this.createNewDepositLambda(eventBus, table, env)
     this.createWebhookLambda(api, table, env)
     this.createStreamConsumerLambda(table, env)
     this.createDepositInProviderLambda(eventBus, table, env)
@@ -56,21 +60,25 @@ export class ServiceStack extends Stack {
       partitionKey: { name: 'userId', type: AttributeType.STRING }
     })
 
-    table.addGlobalSecondaryIndex({
-      indexName: 'endToEndIdIndex',
-      partitionKey: { name: 'endToEndId', type: AttributeType.STRING }
-    })
-
     return table
   }
 
-  private createDepositLambda (api: awsApigateway.RestApi, table: Table, env: Record<string, any>) {
+  // Reference pattern: EventBridge-listener lambda that creates a new
+  // deposit on an upstream "transaction-pending" event. Handler + tests +
+  // delegation to a src/ package mirror the deposit_in_provider shape so
+  // candidates have a complete worked example to model on.
+  private createNewDepositLambda (eventBus: awsEvents.EventBus, table: Table, env: Record<string, any>) {
     const lambda = utils.createLambdaWithDynamoAccess(
-      this, 'deposit', 'deposit', table, [], env, Duration.seconds(5), CriticalAlarmConfig
+      this, 'createNewDeposit', 'create_new_deposit', table, [], env, Duration.seconds(30), CriticalAlarmConfig
     )
-    const integration = new awsApigateway.LambdaIntegration(lambda)
-    api.root.addMethod('GET', integration, { apiKeyRequired: true })
-    api.root.addResource('{depositId}').addMethod('GET', integration, { apiKeyRequired: true })
+    const rule = new awsEvents.Rule(this, 'pendingTransactionRule', {
+      eventBus,
+      eventPattern: {
+        source: [PENDING_TRANSACTION_SOURCE],
+        detailType: [PENDING_TRANSACTION_DETAIL_TYPE]
+      }
+    })
+    rule.addTarget(new awsEventsTargets.LambdaFunction(lambda, { retryAttempts: 0 }))
   }
 
   private createWebhookLambda (api: awsApigateway.RestApi, table: Table, env: Record<string, any>) {

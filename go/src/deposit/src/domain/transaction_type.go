@@ -12,28 +12,10 @@ type TransactionType int
 
 const (
 	SalaryAdvance TransactionType = iota
-	PayrollLoan
-	AccountWithdraw
-	SalaryAdvanceFX
-	ChargeReversal
-	ReferralTransactionPaid
-	FidcRepurchase
-	FidcSalaryAdvanceDisbursement
-	FidcChargeDisbursement
-	RedeemedPrize
 )
 
 var typeToString = map[TransactionType]string{
-	SalaryAdvance:                 "SalaryAdvance",
-	PayrollLoan:                   "PayrollLoan",
-	AccountWithdraw:               "AccountWithdraw",
-	SalaryAdvanceFX:               "SalaryAdvanceFX",
-	ChargeReversal:                "ChargeReversal",
-	ReferralTransactionPaid:       "ReferralTransactionPaid",
-	FidcRepurchase:                "FidcRepurchase",
-	FidcSalaryAdvanceDisbursement: "FidcSalaryAdvanceDisbursement",
-	FidcChargeDisbursement:        "FidcChargeDisbursement",
-	RedeemedPrize:                 "RedeemedPrize",
+	SalaryAdvance: "SalaryAdvance",
 }
 
 func (t TransactionType) String() string {
@@ -41,16 +23,7 @@ func (t TransactionType) String() string {
 }
 
 var transactionToID = map[string]TransactionType{
-	"SalaryAdvance":                 SalaryAdvance,
-	"PayrollLoan":                   PayrollLoan,
-	"AccountWithdraw":               AccountWithdraw,
-	"SalaryAdvanceFX":               SalaryAdvanceFX,
-	"ChargeReversal":                ChargeReversal,
-	"ReferralTransactionPaid":       ReferralTransactionPaid,
-	"FidcRepurchase":                FidcRepurchase,
-	"FidcSalaryAdvanceDisbursement": FidcSalaryAdvanceDisbursement,
-	"FidcChargeDisbursement":        FidcChargeDisbursement,
-	"RedeemedPrize":                 RedeemedPrize,
+	"SalaryAdvance": SalaryAdvance,
 }
 
 func StringToType(status string) (TransactionType, error) {

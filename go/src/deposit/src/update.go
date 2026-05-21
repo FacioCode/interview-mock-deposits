@@ -1,9 +1,7 @@
 package deposit
 
 import (
-	"errors"
 	"interview_mock_deposits_go/deposit/src/domain"
-	"interview_mock_deposits_go/utils"
 )
 
 type InconsistentStatusChangeError struct {
@@ -16,34 +14,26 @@ func (e InconsistentStatusChangeError) Error() string {
 }
 
 func ValidateStatusChange(oldStatus, newStatus domain.DepositStatus) bool {
-	// TODO: replace with real state-machine
+	// TODO: replace with real state-machine validation if needed, currently just checks that status is changing
 	return oldStatus != newStatus
 }
 
 func ConfirmDeposit(depositId, receiptURL string, authorizationCode *string) error {
-	// TODO: replace with real implementation
+	// TODO: replace with real implementation if needed
 	return nil
 }
 
 func UpdateDepositStatus(depositId string, newStatus domain.DepositStatus) error {
-	// TODO: replace with real implementation
+	// TODO: replace with real implementation if needed
 	return nil
 }
 
 func UpdateDepositStatusWithReason(depositId string, newStatus domain.DepositStatus, reason, statusDescription string) error {
-	// TODO: replace with real implementation
+	// TODO: replace with real implementation if needed, otherwise just call UpdateDepositStatus
 	return nil
 }
 
 func UpdateDepositAsFailed(depositId, reason, statusDescription, provider string) error {
-	// TODO: replace with real implementation
-	return nil
-}
-
-func ScheduleToRetry(depositId string, retryAt utils.DateTime, reason string) error {
-	if depositId == "" {
-		return errors.New("invalid depositId")
-	}
-	// TODO: replace with real implementation
+	// TODO: replace with real implementation if needed
 	return nil
 }

@@ -12,6 +12,7 @@ cdk.out
 src/**/main
 src/**/main.zip
 build/
+go.work.sum
 
 #IDE
 .idea

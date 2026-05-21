@@ -5,8 +5,7 @@ set -e
 export GO111MODULE="on"
 
 functions=(
-  hello_world
-  deposit
+  create_new_deposit
   deposit_in_provider
   stream_consumer
   webhook

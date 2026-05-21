@@ -4,3 +4,6 @@
 # IDE
 .idea/
 .vscode/
+
+# DynamoDB Local artifacts (telemetry file written to cwd)
+dynamodb-local-metadata.json

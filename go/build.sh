@@ -7,6 +7,7 @@ export GO111MODULE="on"
 functions=(
   hello_world
   deposit
+  deposit_in_provider
 )
 
 

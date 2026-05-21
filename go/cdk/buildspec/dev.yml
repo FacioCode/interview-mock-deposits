@@ -1,0 +1,20 @@
+version: 0.2
+
+env:
+  variables:
+    APP_ENV: "dev"
+    STACK_NAME: "InterviewMockDepositsGoStack"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+      golang: 1.20
+
+  build:
+    commands:
+      - ROLE=$(aws sts assume-role --role-arn "arn:aws:iam::111111111111:role/CI-Dev-Role" --role-session-name "CodeBuildSession")
+      - export AWS_ACCESS_KEY_ID=$(echo $ROLE | jq -r .Credentials.AccessKeyId)
+      - export AWS_SECRET_ACCESS_KEY=$(echo $ROLE | jq -r .Credentials.SecretAccessKey)
+      - export AWS_SESSION_TOKEN=$(echo $ROLE | jq -r .Credentials.SessionToken)
+      - npm run cdk -- deploy $STACK_NAME --require-approval=never -v

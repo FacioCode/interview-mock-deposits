@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+  variables:
+    STACK_NAME: "InterviewMockDepositsGoStack"
+    TABLE_NAME: "InterviewMockDepositsTable"
+    CI: "1"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+      golang: 1.20
+
+  pre_build:
+    commands:
+      - npm install
+
+  build:
+    commands:
+      - npm run lint
+      - npm run build
+      - npm run cdk -- synth $STACK_NAME
+      - ./with-dynamodb-local.sh npm run test
+
+artifacts:
+  enable-symlinks: yes
+  files:
+    - "**/*"

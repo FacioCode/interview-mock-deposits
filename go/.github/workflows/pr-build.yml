@@ -1,0 +1,20 @@
+# name: PR Build
+# on: pull_request
+
+# jobs:
+#   build:
+#     name: PR Build
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v1
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_CI_ACCESS_KEY }}
+#           aws-secret-access-key: ${{ secrets.AWS_CI_SECRET_KEY }}
+#           aws-region: us-east-1
+
+#       - name: Run CodeBuild
+#         uses: aws-actions/aws-codebuild-run-build@v1
+#         with:
+#           project-name: InterviewMockDepositsGoStack-PR

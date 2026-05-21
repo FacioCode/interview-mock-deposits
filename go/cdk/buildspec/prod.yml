@@ -1,0 +1,22 @@
+version: 0.2
+
+env:
+  variables:
+    APP_ENV: "prod"
+    STACK_NAME: "InterviewMockDepositsGoStack"
+    ONCALL_ALARM_NOTIFICATION_ARN: "arn:aws:sns:sa-east-1:222222222222:OnCall_Critical_CloudWatch_Alarms_Topic"
+    DEFAULT_ALARM_NOTIFICATION_ARN: # TODO: add ARN
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+      golang: 1.20
+
+  build:
+    commands:
+      - ROLE=$(aws sts assume-role --role-arn "arn:aws:iam::222222222222:role/CI-Prod-Role" --role-session-name "CodeBuildSession")
+      - export AWS_ACCESS_KEY_ID=$(echo $ROLE | jq -r .Credentials.AccessKeyId)
+      - export AWS_SECRET_ACCESS_KEY=$(echo $ROLE | jq -r .Credentials.SecretAccessKey)
+      - export AWS_SESSION_TOKEN=$(echo $ROLE | jq -r .Credentials.SessionToken)
+      - npm run cdk -- deploy $STACK_NAME --require-approval=never -v

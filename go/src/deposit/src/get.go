@@ -3,8 +3,6 @@ package deposit
 import (
 	"errors"
 
-	"interview_mock_deposits_go/deposit/src/domain"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -37,11 +35,22 @@ func GetDepositById(id string) (Deposit, error) {
 	if id == "" {
 		return Deposit{}, errors.New("Deposit not found")
 	}
-	// TODO: replace with real implementation
-	return Deposit{}, nil
-}
-
-func GetDepositByStatus(status domain.DepositStatus) ([]Deposit, error) {
-	// TODO: replace with real implementation, if needed
-	return []Deposit{}, nil
+	out, err := DdbSvc.GetItem(&dynamodb.GetItemInput{
+		TableName:      TableName,
+		ConsistentRead: aws.Bool(true),
+		Key: map[string]*dynamodb.AttributeValue{
+			"depositId": {S: aws.String(id)},
+		},
+	})
+	if err != nil {
+		return Deposit{}, err
+	}
+	if out.Item == nil {
+		return Deposit{}, errors.New("Deposit not found")
+	}
+	var d Deposit
+	if err := dynamodbattribute.UnmarshalMap(out.Item, &d); err != nil {
+		return Deposit{}, err
+	}
+	return d, nil
 }

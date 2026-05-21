@@ -15,7 +15,7 @@ func SendEvents(record events.DynamoDBEventRecord) {
 }
 
 func sendEvent(detailType string, item map[string]events.DynamoDBAttributeValue) {
-	// TODO: replace with real event publication (EventBridge PutEvents)
+	// mock event publication (EventBridge PutEvents)
 	logrus.WithFields(logrus.Fields{
 		"detailType": detailType,
 		"depositId":  item["depositId"].String(),

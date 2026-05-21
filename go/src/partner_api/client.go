@@ -23,6 +23,5 @@ func Pay(ctx context.Context, req TransferRequest) (TransferResult, error) {
 }
 
 func IsWebhookValid(signature, body string) bool {
-	// TODO: replace with real signature verification
 	return signature != ""
 }

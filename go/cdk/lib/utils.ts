@@ -81,11 +81,12 @@ export function createApiGateway (scope: Construct, id: string, basePath: string
   return api
 }
 
-export function createTable (scope: Construct, tableName: string, partitionKey: awsDynamodb.Attribute, sortKey: awsDynamodb.Attribute): awsDynamodb.Table {
+export function createTable (scope: Construct, tableName: string, partitionKey: awsDynamodb.Attribute, sortKey?: awsDynamodb.Attribute, timeToLiveAttribute?: string): awsDynamodb.Table {
   const table = new awsDynamodb.Table(scope, tableName, {
     tableName,
     partitionKey,
     sortKey,
+    timeToLiveAttribute,
     billingMode: awsDynamodb.BillingMode.PAY_PER_REQUEST,
     stream: awsDynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
     removalPolicy: isProd() ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,

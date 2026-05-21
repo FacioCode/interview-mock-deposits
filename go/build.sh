@@ -9,6 +9,7 @@ functions=(
   deposit
   deposit_in_provider
   stream_consumer
+  webhook
 )
 
 

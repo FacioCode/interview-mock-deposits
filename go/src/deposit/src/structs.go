@@ -4,7 +4,6 @@ import (
 	"errors"
 	"interview_mock_deposits_go/deposit/src/domain"
 	"interview_mock_deposits_go/internal/testUtils"
-	"interview_mock_deposits_go/utils"
 )
 
 type Transaction struct {
@@ -18,10 +17,8 @@ type Transaction struct {
 type Deposit struct {
 	DepositId string               `json:"depositId"`
 	Status    domain.DepositStatus `json:"status"`
+	UserData  *UserData            `json:"userData,omitempty"`
 	Transaction
-	UserData    *UserData       `json:"userData,omitempty"`
-	DepositTime *utils.DateTime `json:"depositTime,omitempty"`
-	CreatedAt   string          `json:"createdAt,omitempty"`
 }
 
 type UserData struct {

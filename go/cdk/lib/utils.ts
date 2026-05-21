@@ -2,10 +2,7 @@ import { Aws, Duration, RemovalPolicy } from 'aws-cdk-lib'
 import * as awsSqs from 'aws-cdk-lib/aws-sqs'
 import * as awsLambda from 'aws-cdk-lib/aws-lambda'
 import * as awsDynamodb from 'aws-cdk-lib/aws-dynamodb'
-import * as awsS3 from 'aws-cdk-lib/aws-s3'
 import * as awsIam from 'aws-cdk-lib/aws-iam'
-import * as firehose from 'aws-cdk-lib/aws-kinesisfirehose'
-import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
 import * as awsApigateway from 'aws-cdk-lib/aws-apigateway'
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager'
 import { Construct } from 'constructs'
@@ -94,45 +91,12 @@ export function createTable (scope: Construct, tableName: string, partitionKey: 
       pointInTimeRecoveryEnabled: isProd()
     }
   })
-  if (isProd()) {
-    const bucket = new awsS3.Bucket(scope, tableName + 'StreamBucket', { removalPolicy: RemovalPolicy.DESTROY })
-    const firehoseRole = createFirehoseRole(scope)
-    const deliveryStream = new firehose.CfnDeliveryStream(scope, tableName + 'stream', {
-      deliveryStreamName: tableName,
-      s3DestinationConfiguration: {
-        bucketArn: bucket.bucketArn,
-        compressionFormat: 'GZIP',
-        bufferingHints: {
-          intervalInSeconds: 60 * 5,
-          sizeInMBs: 10
-        },
-        roleArn: firehoseRole.roleArn,
-        prefix: '!{timestamp:YYYY}/!{timestamp:MM}/!{timestamp:dd}/',
-        errorOutputPrefix: 'error/!{firehose:error-output-type}/!{timestamp:YYYY}/!{timestamp:MM}/!{timestamp:dd}/'
-      }
-    })
-    const lambdaFunction = new awsLambda.Function(
-      scope, tableName + 'DynamoToFirehose',
-      {
-        handler: 'index.handler',
-        runtime: awsLambda.Runtime.NODEJS_20_X,
-        code: awsLambda.Code.fromAsset('src/dynamostream_to_firehose/LambdaStreamToFirehose-1.5.2.zip')
-      }
-    )
-    const policy = new awsIam.PolicyStatement({
-      resources: [deliveryStream.attrArn],
-      actions: ['firehose:*']
-    })
-    lambdaFunction.addToRolePolicy(policy)
-    lambdaFunction.addEventSource(new DynamoEventSource(table, {
-      startingPosition: awsLambda.StartingPosition.TRIM_HORIZON
-    }))
-  }
+
   return table
 }
 
 export function createGoLambda (scope: Construct, id: string, path: string, env?: any, timeout?: Duration, initialPolicy?: awsIam.PolicyStatement[], alarmConfig?: LambdaAlarmConfig, retry?: any): awsLambda.Function {
-  // TODO: use GoFunction - Current version is alpha
+  // use GoFunction - Current version is alpha
   // https://docs.aws.amazon.com/cdk/api/v2/docs/@aws-cdk_aws-lambda-go-alpha.GoFunction.html
   const name = pascalCase(id)
   const lambda = new awsLambda.Function(scope, name, {
@@ -188,17 +152,6 @@ export function createSqsQueue (scope: Construct, queueName: string): awsSqs.Que
 // use .secretValueFromJson(key) to interpret it as JSON and get the SecretValue with given key
 export function getSecret (scope: Construct, secretId: string, secretName: string) {
   return Secret.fromSecretNameV2(scope, secretId, secretName)
-}
-
-function createFirehoseRole (scope: Construct) {
-  const role = new awsIam.Role(scope, 'InterviewMockDepositsFirehoseRole', {
-    assumedBy: new awsIam.ServicePrincipal('firehose.amazonaws.com'),
-    managedPolicies: [
-      awsIam.ManagedPolicy.fromAwsManagedPolicyName('AmazonKinesisFirehoseFullAccess'),
-      awsIam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess')
-    ]
-  })
-  return role
 }
 
 function setDomainName (scope: Construct, basePath: string, domain: awsApigateway.DomainNameAttributes | undefined, api: awsApigateway.RestApi) {

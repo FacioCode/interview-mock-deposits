@@ -26,9 +26,6 @@ export class CDPipelineStack extends Stack {
     const roleDev = awsIam.Role.fromRoleArn(this, 'roleDev', 'arn:aws:iam::333333333333:role/service-role/codebuild-CDK-Deploy-Dev-service-role', { mutable: false }) as awsIam.Role
     const devProj = this.getCodeBuildProject('Dev', props.projectName, roleDev)
 
-    const roleProd = awsIam.Role.fromRoleArn(this, 'roleProd', 'arn:aws:iam::333333333333:role/service-role/codebuild-CDK-Deploy-Prod-service-role', { mutable: false }) as awsIam.Role
-    const prodProj = this.getCodeBuildProject('Prod', props.projectName, roleProd)
-
     const adminLocalRole = new awsIam.Role(this, 'localAdminRole', {
       managedPolicies: [awsIam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       assumedBy: new awsIam.ServicePrincipal('codebuild.amazonaws.com')
@@ -68,16 +65,6 @@ export class CDPipelineStack extends Stack {
             new CodeBuildAction({
               actionName: 'Dev',
               project: devProj,
-              input: cdkBuildOutput
-            })
-          ]
-        },
-        {
-          stageName: 'DeployProd',
-          actions: [
-            new CodeBuildAction({
-              actionName: 'Prod',
-              project: prodProj,
               input: cdkBuildOutput
             })
           ]

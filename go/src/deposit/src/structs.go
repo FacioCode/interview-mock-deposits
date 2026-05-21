@@ -56,10 +56,6 @@ func (t BankAccount) Validate() error {
 	return nil
 }
 
-func (t Transaction) GenerateIdempotencyKey() string {
-	return testUtils.GenerateRandomId()
-}
-
 func (t Transaction) GenerateDepositId() string {
 	return testUtils.GenerateRandomId()
 }

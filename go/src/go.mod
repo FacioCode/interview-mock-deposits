@@ -1,6 +1,6 @@
 module interview_mock_deposits_go
 
-go 1.20
+go 1.26
 
 require (
 	github.com/aws/aws-lambda-go v1.54.0

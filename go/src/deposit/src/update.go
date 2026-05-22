@@ -13,8 +13,8 @@ func (e InconsistentStatusChangeError) Error() string {
 	return "inconsistent status change"
 }
 
-// TODO: implementar máquina de estados real (ex.: NEW -> DEPOSIT_SENT -> DONE/FAILED/RETURNED;
-// proibir transições inválidas como FAILED -> DONE). Hoje aceita qualquer mudança != atual.
+// TODO: implementar máquina de estados real; proibir transições inválidas.
+// Hoje aceita qualquer mudança != atual.
 func ValidateStatusChange(oldStatus, newStatus domain.DepositStatus) bool {
 	return oldStatus != newStatus
 }

@@ -78,7 +78,7 @@ def _create_transfer(secrets: PartnerSecrets, req: TransferRequest) -> str:
     status, raw = _http_request("POST", _partner_base_url() + "/transfers", headers=headers, body=body)
     if 200 <= status < 300:
         out = json.loads(raw or b"{}")
-        return str(out["transferId"])
+        return str(out.get("transferId", ""))
 
     err_body: dict[str, Any] = {}
     if raw:

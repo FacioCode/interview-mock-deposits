@@ -25,12 +25,12 @@ if ! is_running; then
     exit 1
   fi
 
-  DBPATH="$(mktemp -d -t dynamodb-local-db.XXXXXX)"
+  DBPATH="/tmp/dynamodb-local-data"
+  mkdir -p "$DBPATH"
   nohup java -Djava.library.path="$DYNAMODB_LIB" \
     -jar "$DYNAMODB_JAR" \
     -sharedDb -dbPath "$DBPATH" -port "$DYNAMODB_PORT" \
-    > /tmp/dynamodb.log 2>&1 &
-  disown
+    >> /tmp/dynamodb.log 2>&1 &
 
   for _ in {1..30}; do
     if is_running; then break; fi
@@ -51,9 +51,8 @@ if ! aws dynamodb describe-table \
     --attribute-definitions \
         AttributeName=depositId,AttributeType=S \
         AttributeName=userId,AttributeType=S \
-        AttributeName=endToEndId,AttributeType=S \
     --global-secondary-indexes \
-        '[{"IndexName":"userIndex","KeySchema":[{"AttributeName":"userId","KeyType":"HASH"}],"Projection":{"ProjectionType":"ALL"},"ProvisionedThroughput":{"ReadCapacityUnits":5,"WriteCapacityUnits":5}},{"IndexName":"endToEndIdIndex","KeySchema":[{"AttributeName":"endToEndId","KeyType":"HASH"}],"Projection":{"ProjectionType":"ALL"},"ProvisionedThroughput":{"ReadCapacityUnits":5,"WriteCapacityUnits":5}}]' \
+        '[{"IndexName":"userIndex","KeySchema":[{"AttributeName":"userId","KeyType":"HASH"}],"Projection":{"ProjectionType":"ALL"},"ProvisionedThroughput":{"ReadCapacityUnits":5,"WriteCapacityUnits":5}}]' \
     --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
     --endpoint-url "$AWS_ENDPOINT_URL_DYNAMODB" > /dev/null
   aws dynamodb wait table-exists \

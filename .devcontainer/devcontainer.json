@@ -16,6 +16,7 @@
     "ghcr.io/devcontainers/features/aws-cli:1": {}
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/post-start.sh",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -37,7 +38,8 @@
     }
   },
   "remoteEnv": {
-    "AWS_ENDPOINT_URL_DYNAMODB": "http://localhost:8000"
+    "AWS_ENDPOINT_URL_DYNAMODB": "http://localhost:8000",
+    "TABLE_NAME": "InterviewMockDepositsTable"
   },
   "forwardPorts": [8000],
   "portsAttributes": {

@@ -1,0 +1,32 @@
+version: 0.2
+
+env:
+  variables:
+    STACK_NAME: "InterviewMockDepositsPythonStack"
+    TABLE_NAME: "InterviewMockDepositsTable"
+    CI: "1"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+      python: 3.12
+    commands:
+      - pip install --upgrade pip
+      - pip install uv
+
+  pre_build:
+    commands:
+      - npm install
+
+  build:
+    commands:
+      - npm run lint
+      - npm run build
+      - npm run cdk -- synth $STACK_NAME
+      - ./test.sh
+
+artifacts:
+  enable-symlinks: yes
+  files:
+    - "**/*"

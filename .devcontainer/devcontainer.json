@@ -20,6 +20,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "anthropic.claude-code",
         "golang.go",
         "dbaeumer.vscode-eslint",
         "amazonwebservices.aws-toolkit-vscode",
@@ -39,7 +40,8 @@
   },
   "remoteEnv": {
     "AWS_ENDPOINT_URL_DYNAMODB": "http://localhost:8000",
-    "TABLE_NAME": "InterviewMockDepositsTable"
+    "TABLE_NAME": "InterviewMockDepositsTable",
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}"
   },
   "forwardPorts": [8000],
   "portsAttributes": {

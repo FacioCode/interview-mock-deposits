@@ -95,14 +95,12 @@ export function createTable (scope: Construct, tableName: string, partitionKey: 
   return table
 }
 
-export function createGoLambda (scope: Construct, id: string, path: string, env?: any, timeout?: Duration, initialPolicy?: awsIam.PolicyStatement[], alarmConfig?: LambdaAlarmConfig, retry?: any): awsLambda.Function {
-  // use GoFunction - Current version is alpha
-  // https://docs.aws.amazon.com/cdk/api/v2/docs/@aws-cdk_aws-lambda-go-alpha.GoFunction.html
+export function createPythonLambda (scope: Construct, id: string, path: string, env?: any, timeout?: Duration, initialPolicy?: awsIam.PolicyStatement[], alarmConfig?: LambdaAlarmConfig, retry?: any): awsLambda.Function {
   const name = pascalCase(id)
   const lambda = new awsLambda.Function(scope, name, {
-    runtime: awsLambda.Runtime.PROVIDED_AL2023,
+    runtime: awsLambda.Runtime.PYTHON_3_12,
     code: awsLambda.Code.fromAsset(`build/${path}/main.zip`),
-    handler: 'main',
+    handler: `${path}.handler.handle_request`,
     environment: env,
     timeout,
     initialPolicy,
@@ -128,7 +126,7 @@ export function createLambda (scope: Construct, id: string, path: string, handle
 }
 
 export function createLambdaWithDynamoAccess (scope: Construct, id: string, path: string, table: awsDynamodb.Table, initialPolicy?: awsIam.PolicyStatement[], env?: any, timeout?: Duration, alarmConfig?: LambdaAlarmConfig | undefined, retry?: any): awsLambda.Function {
-  const lambda = createGoLambda(scope, id, path, { ...env, TABLE_NAME: table.tableName }, timeout, initialPolicy, alarmConfig, retry)
+  const lambda = createPythonLambda(scope, id, path, { ...env, TABLE_NAME: table.tableName }, timeout, initialPolicy, alarmConfig, retry)
   const tablePolicy = new awsIam.PolicyStatement({
     actions: ['dynamodb:*'],
     resources: [table.tableArn, `${table.tableArn}/*`],

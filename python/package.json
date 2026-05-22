@@ -1,8 +1,8 @@
 {
-  "name": "interview-mock-deposits-go",
+  "name": "interview-mock-deposits-python",
   "version": "0.1.0",
   "bin": {
-    "interview-mock-deposits-go": "bin/interview-mock-deposits-go.js"
+    "interview-mock-deposits-python": "bin/interview-mock-deposits-python.js"
   },
   "scripts": {
     "lint": "eslint . --ext .ts",

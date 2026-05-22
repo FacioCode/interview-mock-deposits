@@ -12,21 +12,11 @@ dynamodb-local-metadata.json
 node_modules/
 cdk.out/
 
-# Go + Python build artifacts
+# Go build artifacts
 build/
 coverage.txt
-
-# Python
-.venv/
-__pycache__/
-*.pyc
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-uv.lock
 
 # Interviewer-only material — must NOT be visible to candidates.
 # These files contain decision-point spoilers for the exercise.
 INTERVIEWERS.md
-MULTILANG-PLAN.md
 .claude/skills/port-to-language/

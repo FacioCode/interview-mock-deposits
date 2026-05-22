@@ -4,7 +4,7 @@ Python implementation of the interview exercise. CDK-deployed lambda service wit
 
 ## Commands
 
-```
+```bash
 ./test.sh            # boots DynamoDB Local + runs pytest (uv)
 ./build.sh           # packages each lambda into build/<fn>/main.zip
 cd cdk && npm install && npm run test:cdk    # run CDK stack tests (TS)

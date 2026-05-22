@@ -54,7 +54,10 @@ func (t *Money) UnmarshalDynamoDBAttributeValue(av *dynamodb.AttributeValue) err
 	if av.N == nil {
 		t.Value = 0.0
 	} else {
-		floatResult, _ := strconv.ParseFloat(*av.N, 64)
+		floatResult, err := strconv.ParseFloat(*av.N, 64)
+		if err != nil {
+			return err
+		}
 		t.Value = floatResult
 	}
 	return nil

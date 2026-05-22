@@ -3,6 +3,7 @@ package domain
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
@@ -31,8 +32,11 @@ var statusToID = map[string]DepositStatus{
 	"FAILED":       Failed,
 }
 
-func StringToStatus(status string) DepositStatus {
-	return statusToID[status]
+func StringToStatus(status string) (DepositStatus, error) {
+	if val, ok := statusToID[status]; ok {
+		return val, nil
+	}
+	return 0, errors.New("invalid DepositStatus")
 }
 
 func (d DepositStatus) MarshalJSON() ([]byte, error) {
@@ -48,7 +52,11 @@ func (d *DepositStatus) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*d = statusToID[j]
+	val, ok := statusToID[j]
+	if !ok {
+		return errors.New("invalid DepositStatus: " + j)
+	}
+	*d = val
 	return nil
 }
 
@@ -59,6 +67,13 @@ func (d DepositStatus) MarshalDynamoDBAttributeValue(av *dynamodb.AttributeValue
 }
 
 func (d *DepositStatus) UnmarshalDynamoDBAttributeValue(av *dynamodb.AttributeValue) error {
-	*d = statusToID[*av.S]
+	if av.S == nil {
+		return nil
+	}
+	val, ok := statusToID[*av.S]
+	if !ok {
+		return errors.New("invalid DepositStatus: " + *av.S)
+	}
+	*d = val
 	return nil
 }

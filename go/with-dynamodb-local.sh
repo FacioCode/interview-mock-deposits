@@ -6,7 +6,7 @@ TABLE_NAME="InterviewMockDepositsTable"
 PARTITION_KEY="depositId"
 TTL_ATTR="ttl"
 # GSIs: each entry is "indexName:attributeName"
-GSIS=("userIndex:userId" "endToEndIdIndex:endToEndId")
+GSIS=("userIndex:userId")
 
 # End setup variables
 
@@ -174,7 +174,7 @@ attribute_defs() {
   echo "${args[@]}"
 }
 
-# Create the application table to match CDK: PK depositId, two GSIs, TTL.
+# Create the application table to match CDK: PK depositId, one GSI, TTL.
 create_table() {
   log_info "Creating table: $TABLE_NAME"
 

@@ -46,7 +46,11 @@ func (t *TransactionType) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*t = transactionToID[j]
+	val, ok := transactionToID[j]
+	if !ok {
+		return errors.New("invalid TransactionType: " + j)
+	}
+	*t = val
 	return nil
 }
 
@@ -57,6 +61,13 @@ func (t TransactionType) MarshalDynamoDBAttributeValue(av *dynamodb.AttributeVal
 }
 
 func (t *TransactionType) UnmarshalDynamoDBAttributeValue(av *dynamodb.AttributeValue) error {
-	*t = transactionToID[*av.S]
+	if av.S == nil {
+		return nil
+	}
+	val, ok := transactionToID[*av.S]
+	if !ok {
+		return errors.New("invalid TransactionType: " + *av.S)
+	}
+	*t = val
 	return nil
 }

@@ -25,7 +25,6 @@ const dateLayoutWithHours = "2006-01-02T15:04:05"
 func (t *FormattedDate) UnmarshalJSON(b []byte) (err error) {
 	s := string(b)
 	if s == "null" {
-		t = nil
 		return
 	}
 	s = strings.ReplaceAll(s, "\"", "")
@@ -65,7 +64,6 @@ func (t FormattedDate) ToDefaultFormat() string {
 func (t *DateTime) UnmarshalJSON(b []byte) error {
 	s := string(b)
 	if s == "null" {
-		t = nil
 		return nil
 	}
 	s = strings.ReplaceAll(s, "\"", "")

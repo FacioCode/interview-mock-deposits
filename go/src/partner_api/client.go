@@ -105,10 +105,13 @@ func getPartnerSecrets() (PartnerSecrets, error) {
 // createTransfer POSTs a new transfer to the partner and maps known
 // error codes from the response body onto typed errors.
 func createTransfer(ctx context.Context, secrets PartnerSecrets, req TransferRequest) (string, error) {
-	body, _ := json.Marshal(map[string]any{
+	body, err := json.Marshal(map[string]any{
 		"id":     req.ID,
 		"amount": req.Amount,
 	})
+	if err != nil {
+		return "", fmt.Errorf("marshal transfer request: %w", err)
+	}
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, partnerBaseURL()+"/transfers", bytes.NewReader(body))
 	if err != nil {
 		return "", err

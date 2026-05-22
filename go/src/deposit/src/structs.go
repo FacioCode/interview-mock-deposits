@@ -3,7 +3,8 @@ package deposit
 import (
 	"errors"
 	"interview_mock_deposits_go/deposit/src/domain"
-	"interview_mock_deposits_go/internal/testUtils"
+
+	"github.com/google/uuid"
 )
 
 type Transaction struct {
@@ -57,5 +58,5 @@ func (t BankAccount) Validate() error {
 }
 
 func (t Transaction) GenerateDepositId() string {
-	return testUtils.GenerateRandomId()
+	return uuid.NewString()
 }

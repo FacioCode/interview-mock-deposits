@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	deposit "interview_mock_deposits_go/deposit/src"
 	"interview_mock_deposits_go/partner_api"
@@ -26,8 +27,8 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 
 	logrus.WithField("request", request).Info("webhook request received")
 
-	signature, ok := request.Headers["x-partner-signature"]
-	if !ok || !partner_api.IsWebhookValid(signature, request.Body) {
+	signature := lookupHeader(request.Headers, "x-partner-signature")
+	if signature == "" || !partner_api.IsWebhookValid(signature, request.Body) {
 		logrus.Warn("invalid webhook request")
 		return events.APIGatewayProxyResponse{StatusCode: 403}, nil
 	}
@@ -42,6 +43,15 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return handleWebhookError(err, body), nil
 	}
 	return events.APIGatewayProxyResponse{StatusCode: 200}, nil
+}
+
+func lookupHeader(headers map[string]string, name string) string {
+	for k, v := range headers {
+		if strings.EqualFold(k, name) {
+			return v
+		}
+	}
+	return ""
 }
 
 func handleWebhookError(err error, body webhook.Body) events.APIGatewayProxyResponse {

@@ -4,9 +4,7 @@ Serviço serverless em Go que processa depósitos instantâneos: recebe eventos 
 
 ## Objetivo
 
-Mais do que o código pronto, queremos entender **como você usa IA para navegar e modificar um código que não é seu**. Use IA livremente. Na conversa final, o que diferencia é você conseguir explicar as decisões que tomou (e as que delegou pra IA), inclusive aquelas que descartou no meio do caminho.
-
-Não tem problema não terminar tudo.
+Mais do que o código pronto, queremos entender **como você usa IA para navegar e modificar um código que não é seu**. Use IA livremente. **Nosso objetivo principal é entender como você resolve problemas específicos com a ajuda de IA**. O código final importa menos do que esse processo.
 
 ## Sua tarefa
 

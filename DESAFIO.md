@@ -46,7 +46,7 @@ flowchart TD
     dip -->|"partner_api.pay"| ext[(Parceiro externo)]
     ext -->|"webhook<br/>(DONE/FAILED/RETURNED)"| apigw["API Gateway<br/>POST /webhook"]
     apigw --> wh["webhook<br/>[TODO: handle_webhook]"]
-    wh --> upd["deposit/update<br/>[TODO: update_deposit_status,<br/>update_deposit_as_failed]"]
+    wh --> upd["deposit/update<br/>[TODO: stubs]"]
     upd --> ddb
 
     classDef todo fill:#fef3c7,stroke:#d97706,color:#000

@@ -7,6 +7,12 @@
 
 set -euo pipefail
 
+# DynamoDB Local doesn't validate region/credentials, but the AWS CLI refuses
+# to issue a request without them. Provide dummies if the environment hasn't.
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-local}"
+export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-local}"
+
 DYNAMODB_DIR="/tmp/DynamoDBLocal"
 DYNAMODB_JAR="${DYNAMODB_DIR}/DynamoDBLocal.jar"
 DYNAMODB_LIB="${DYNAMODB_DIR}/DynamoDBLocal_lib"

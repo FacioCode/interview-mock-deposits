@@ -12,6 +12,12 @@ GSIS=("userIndex:userId")
 
 set -e
 
+# DynamoDB Local doesn't validate region/credentials, but the AWS CLI refuses
+# to issue a request without them. Provide dummies if the environment hasn't.
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
+export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-local}"
+export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-local}"
+
 # DynamoDB Local settings
 AWS_ENDPOINT_URL_DYNAMODB="http://localhost:8000"
 DYNAMODB_PORT=8000

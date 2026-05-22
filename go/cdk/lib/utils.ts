@@ -53,7 +53,7 @@ export function createApiProxyToSqs (scope: Construct, resource: awsApigateway.R
         {
           statusCode: '500',
           responseTemplates: {
-            'application/jso': JSON.stringify({ success: false })
+            'application/json': JSON.stringify({ success: false })
           },
           selectionPattern: '500'
         }

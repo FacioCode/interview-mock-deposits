@@ -106,6 +106,20 @@ def _close_transfer(secrets: PartnerSecrets, transfer_id: str) -> None:
     raise RuntimeError(f"close transfer status {status}")
 
 
+class PendingCloseError(Exception):
+    """Raised when the partner transfer was created but close failed.
+
+    The transfer exists on the partner side; the caller should persist
+    DEPOSIT_SENT (or equivalent) and wait for the webhook, rather than
+    marking the deposit as failed.
+    """
+
+    def __init__(self, result: TransferResult, cause: Exception) -> None:
+        super().__init__(f"close transfer: {cause}")
+        self.result = result
+        self.cause = cause
+
+
 def pay(req: TransferRequest) -> TransferResult:
     """Run the two-step partner flow: create a pending transfer, then close it.
 
@@ -126,20 +140,6 @@ def pay(req: TransferRequest) -> TransferResult:
         raise PendingCloseError(result, exc) from exc
 
     return TransferResult(id=transfer_id, status=STATUS_CONFIRMED)
-
-
-class PendingCloseError(Exception):
-    """Raised when the partner transfer was created but close failed.
-
-    The transfer exists on the partner side; the caller should persist
-    DEPOSIT_SENT (or equivalent) and wait for the webhook, rather than
-    marking the deposit as failed.
-    """
-
-    def __init__(self, result: TransferResult, cause: Exception) -> None:
-        super().__init__(f"close transfer: {cause}")
-        self.result = result
-        self.cause = cause
 
 
 def is_webhook_valid(signature: str, body: str) -> bool:

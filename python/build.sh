@@ -4,8 +4,11 @@
 # For each function:
 #   1) install runtime deps (boto3 is excluded — provided by the Lambda runtime)
 #      into build/<fn>/
-#   2) copy the function's src/<fn>/ contents to the build root
+#   2) copy the function's src/<fn>/ package directory (preserving its name)
+#      into build/<fn>/, so Lambda's <fn>.handler.handle_request entry point
+#      can resolve at cold start
 #   3) copy the shared modules (deposit, partner_api, internal, utils) alongside
+#      so absolute imports like `from deposit.create import …` resolve
 #   4) zip the result as build/<fn>/main.zip
 
 set -euo pipefail
@@ -38,10 +41,14 @@ package_function() {
     python3 -m pip install --quiet --target "${target}" "${RUNTIME_DEPS[@]}"
   fi
 
-  cp -R "src/${fn}/." "${target}/"
+  cp -R "src/${fn}" "${target}/"
   for mod in "${SHARED_MODULES[@]}"; do
     cp -R "src/${mod}" "${target}/"
   done
+
+  # Strip test files and Python caches from the production artifact.
+  find "${target}" -type f -name "test_*.py" -delete
+  find "${target}" -type d -name "__pycache__" -prune -exec rm -rf {} +
 
   (cd "${target}" && zip -qr "main.zip" . -x "main.zip")
   echo "Built ${target}/main.zip"

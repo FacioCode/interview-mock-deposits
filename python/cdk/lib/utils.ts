@@ -100,7 +100,7 @@ export function createPythonLambda (scope: Construct, id: string, path: string, 
   const lambda = new awsLambda.Function(scope, name, {
     runtime: awsLambda.Runtime.PYTHON_3_12,
     code: awsLambda.Code.fromAsset(`build/${path}/main.zip`),
-    handler: 'handler.handle_request',
+    handler: `${path}.handler.handle_request`,
     environment: env,
     timeout,
     initialPolicy,

@@ -21,7 +21,7 @@ phases:
       - npm run lint
       - npm run build
       - npm run cdk -- synth $STACK_NAME
-      - ./with-dynamodb-local.sh npm run test
+      - ./test.sh
 
 artifacts:
   enable-symlinks: yes

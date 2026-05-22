@@ -7,6 +7,6 @@ Go implementation of the interview exercise. CDK-deployed lambda service with Dy
 ```
 npm install         # install CDK/typescript deps
 npm run build       # build Go lambda artifacts (./src/...) via build.sh
-npm run test        # run go tests
+./test.sh           # run Go tests against DynamoDB Local
 npm run test:cdk    # run CDK stack tests
 ```

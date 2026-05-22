@@ -1,17 +1,19 @@
 # Instant Deposits — Exercício de entrevista
 
-Serviço Go serverless usado como exercício técnico em entrevistas. O candidato completa o ciclo de vida de um depósito (pagamento no parceiro + webhook de retorno) sobre um esqueleto pronto.
+Serviço serverless usado como exercício técnico em entrevistas. O candidato completa o ciclo de vida de um depósito (pagamento no parceiro + webhook de retorno) sobre um esqueleto pronto. Disponível em mais de uma linguagem — escolha a do seu stack.
 
 - **Brief do candidato:** [DESAFIO.md](./DESAFIO.md)
-- **Código:** [`go/`](./go) — CDK + lambdas Go + DynamoDB Local
+- **Linguagens disponíveis:**
+  - [`go/`](./go) — Go + AWS SDK v1, CDK TypeScript, DynamoDB Local
+  - [`python/`](./python) — Python 3.12 + boto3 + uv + pytest, CDK TypeScript, DynamoDB Local
 
 ## Como rodar
 
 ```bash
-cd go
-npm install
-npm test            # Go + DynamoDB Local
-npm run test:cdk    # CDK
+cd <lang>         # go ou python
+./test.sh         # boot DynamoDB Local + roda os testes do app
+
+cd cdk && npm install && npm run test:cdk   # testes da stack CDK (TS)
 ```
 
-Ou abra no GitHub Codespaces — o devcontainer já configura Go, Node, Java, AWS CLI e DynamoDB Local.
+Ou abra no GitHub Codespaces — o devcontainer já configura Go, Node, Python, Java, AWS CLI, uv e DynamoDB Local.

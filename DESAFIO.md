@@ -4,7 +4,9 @@ Serviço serverless que processa depósitos instantâneos: recebe eventos via Ev
 
 ## Objetivo
 
-Este desafio avalia tanto a entrega técnica quanto **como você usa IA para entender e modificar um código que não é seu**. Use IA livremente e esteja pronto para explicar as decisões que tomou (e as que delegou).
+Mais do que o código pronto, queremos entender **como você usa IA para navegar e modificar um código que não é seu**. Use IA livremente. Na conversa final, o que diferencia é você conseguir explicar as decisões que tomou (e as que delegou pra IA), inclusive aquelas que descartou no meio do caminho.
+
+Não tem problema não terminar tudo.
 
 ## Sua tarefa
 
@@ -13,18 +15,18 @@ Complete o ciclo de vida de um depósito:
 1. Após a criação, disparar o pagamento no parceiro.
 2. Ao receber o webhook de retorno do parceiro, refletir o resultado no estado do depósito (sucesso, falha, devolvido).
 
-Não é necessário conhecimento prévio de DynamoDB ou EventBridge: os eventos chegam parseados como entrada do lambda, e o padrão de acesso ao DynamoDB já está demonstrado em `create_new_deposit/`, que está completo e serve como referência (handler + testes de integração + acesso a dados).
+Não é necessário conhecimento prévio de DynamoDB ou EventBridge — os eventos chegam parseados como entrada do lambda. O padrão de acesso ao DynamoDB está demonstrado em `create_new_deposit/`, que serve como referência (handler + testes de integração + acesso a dados).
 
 ## Estrutura
 
-| Componente              | Estado                                                                                 |
-| ----------------------- | -------------------------------------------------------------------------------------- |
-| `create_new_deposit/`   | implementado (referência)                                                              |
-| `deposit_in_provider/`  | incompleto — a função `pay_user` é stub                                                |
-| `webhook/`              | incompleto — a função `handle_webhook` é stub                                          |
-| `partner_api/`          | implementado — consumir, não reimplementar                                             |
-| `deposit/update.*`      | stubs: `update_deposit_status`, `update_deposit_as_failed`, `validate_status_change`   |
-| `stream_consumer/`      | implementado — publicação no EventBridge é mockada via log (tratar como suficiente)    |
+| Componente                | Estado                                                                                  |
+| ------------------------- | --------------------------------------------------------------------------------------- |
+| `create_new_deposit/`     | implementado (referência)                                                               |
+| `stream_consumer/`        | implementado — publicação no EventBridge é mockada via log (tratar como suficiente)     |
+| `deposit_in_provider/`    | só falta `PayUser` — handler do lambda já pronto                                        |
+| `webhook/`                | só falta `HandleWebhook(body)` — structs (`Body`/`Data`) e handler HTTP já prontos      |
+| `deposit/src/update.go`   | stubs: `UpdateDepositStatus`, `UpdateDepositAsFailed`, `ValidateStatusChange`           |
+| `partner_api/`            | implementado — consumir, não reimplementar                                              |
 
 Os nomes acima usam `snake_case` por consistência. Em linguagens de convenção PascalCase (como Go), os equivalentes idiomáticos são `PayUser`, `HandleWebhook`, `UpdateDepositStatus`, etc.
 
@@ -45,7 +47,7 @@ flowchart TD
     sc -->|"deposit-requested"| dip["deposit_in_provider<br/>[TODO: pay_user]"]
     dip -->|"partner_api.pay"| ext[(Parceiro externo)]
     ext -->|"webhook<br/>(DONE/FAILED/RETURNED)"| apigw["API Gateway<br/>POST /webhook"]
-    apigw --> wh["webhook<br/>[TODO: handle_webhook]"]
+    apigw --> wh["webhook<br/>[TODO: HandleWebhook]"]
     wh --> upd["deposit/update<br/>[TODO: stubs]"]
     upd --> ddb
 
@@ -58,10 +60,10 @@ flowchart TD
 Abra no Codespaces (o devcontainer já configura Go, Node, Python, Java, AWS CLI e DynamoDB Local) ou rode localmente:
 
 ```bash
-cd <lang>           # go ou python
-./test.sh           # boot DynamoDB Local + roda os testes do app
-
-cd cdk && npm install && npm run test:cdk    # testes da stack CDK (TS)
+cd go
+npm install
+./test.sh           # Go + DynamoDB Local
+npm run test:cdk    # CDK
 ```
 
-`./test.sh` sobe DynamoDB Local e exporta `AWS_ENDPOINT_URL_DYNAMODB` + `TABLE_NAME` antes de chamar o runner nativo da linguagem. Se rodar o runner direto, os testes de integração pulam silenciosamente por falta dessas variáveis — use sempre o wrapper.
+`./test.sh` sobe DynamoDB Local e exporta `AWS_ENDPOINT_URL_DYNAMODB` + `TABLE_NAME` antes de chamar `go test`. Se rodar `go test ./...` diretamente, os testes de integração pulam silenciosamente por falta dessas variáveis — use sempre o wrapper.

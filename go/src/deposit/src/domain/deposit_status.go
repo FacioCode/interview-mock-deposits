@@ -10,6 +10,7 @@ import (
 
 type DepositStatus int
 
+// Add new states here as needed.
 const (
 	New DepositStatus = iota
 	DepositSent

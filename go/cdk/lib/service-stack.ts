@@ -68,7 +68,7 @@ export class ServiceStack extends Stack {
     const initialPolicy = [
       new awsIam.PolicyStatement({
         actions: ['events:PutEvents'],
-        resources: ['*'],
+        resources: [eventBus.eventBusArn],
         effect: awsIam.Effect.ALLOW
       })
     ]

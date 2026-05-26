@@ -14,3 +14,5 @@ cd cdk && npm install && npm run test:cdk   # testes da stack CDK (TS)
 ```
 
 Ou abra no GitHub Codespaces — o devcontainer já configura Go, Node, Java, AWS CLI e DynamoDB Local.
+
+> Codespaces exige estar logado no GitHub antes de criar o ambiente.

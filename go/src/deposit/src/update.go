@@ -1,6 +1,8 @@
 package deposit
 
 import (
+	"strings"
+
 	"interview_mock_deposits_go/deposit/src/domain"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -57,14 +59,19 @@ func UpdateDepositStatus(depositId string, newStatus domain.DepositStatus) error
 		Key: map[string]*dynamodb.AttributeValue{
 			"depositId": {S: aws.String(depositId)},
 		},
-		UpdateExpression: aws.String("SET #status = :new"),
+		UpdateExpression:    aws.String("SET #status = :new"),
+		ConditionExpression: aws.String("#status = :old"),
 		ExpressionAttributeNames: map[string]*string{
 			"#status": aws.String("status"),
 		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":new": {S: aws.String(newStatus.String())},
+			":old": {S: aws.String(current.Status.String())},
 		},
 	})
+	if err != nil && strings.Contains(err.Error(), "ConditionalCheckFailedException") {
+		return InconsistentStatusChangeError{OldStatus: current.Status, NewStatus: newStatus}
+	}
 	return err
 }
 
@@ -81,14 +88,19 @@ func UpdateDepositAsFailed(depositId, reason string) error {
 		Key: map[string]*dynamodb.AttributeValue{
 			"depositId": {S: aws.String(depositId)},
 		},
-		UpdateExpression: aws.String("SET #status = :new, failureReason = :reason"),
+		UpdateExpression:    aws.String("SET #status = :new, failureReason = :reason"),
+		ConditionExpression: aws.String("#status = :old"),
 		ExpressionAttributeNames: map[string]*string{
 			"#status": aws.String("status"),
 		},
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":new":    {S: aws.String(domain.Failed.String())},
 			":reason": {S: aws.String(reason)},
+			":old":    {S: aws.String(current.Status.String())},
 		},
 	})
+	if err != nil && strings.Contains(err.Error(), "ConditionalCheckFailedException") {
+		return InconsistentStatusChangeError{OldStatus: current.Status, NewStatus: domain.Failed}
+	}
 	return err
 }

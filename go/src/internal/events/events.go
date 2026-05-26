@@ -1,7 +1,7 @@
 package events
 
 const (
-	// Deposit lifecycle events (published by stream_consumer on DDB transitions)
+	// Deposit lifecycle events (published by create_new_deposit after persisting)
 	Source               = "interview.mock.deposits"
 	DepositRequestedType = "deposit-requested"
 

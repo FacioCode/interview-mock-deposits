@@ -45,7 +45,7 @@ func CreateDeposit(event events.PendingTransactionEvent, requestId string) error
 
 	// mock event publication (EventBridge PutEvents)
 	logrus.WithFields(logrus.Fields{
-		"detailType": "deposit-requested",
+		"detailType": events.DepositRequestedType,
 		"depositId":  depositId,
 	}).Info("event would be published")
 

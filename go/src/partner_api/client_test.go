@@ -76,7 +76,7 @@ func TestPay_createFailure_skipsCloseAndPropagates(t *testing.T) {
 	}
 }
 
-func TestPay_closeFailure_returnsPendingStatus(t *testing.T) {
+func TestPay_closeFailure_returnsZeroResultAndError(t *testing.T) {
 	resetSeams(t)
 	GetPartnerSecrets = func() (PartnerSecrets, error) {
 		return PartnerSecrets{ApiKey: "k", ApiSecret: "s"}, nil
@@ -89,11 +89,11 @@ func TestPay_closeFailure_returnsPendingStatus(t *testing.T) {
 	}
 
 	result, err := Pay(context.Background(), TransferRequest{ID: "d-1", Amount: 10})
-	if err == nil {
-		t.Fatal("expected error from close failure")
+	if !errors.Is(err, ErrPartnerUnavailable) {
+		t.Fatalf("want ErrPartnerUnavailable wrapped, got %v", err)
 	}
-	if result.ID != "tx-123" || result.Status != StatusPending {
-		t.Fatalf("want {tx-123 PENDING}, got %#v", result)
+	if result != (TransferResult{}) {
+		t.Fatalf("want zero-value TransferResult, got %#v", result)
 	}
 }
 

@@ -14,13 +14,17 @@ type DepositStatus int
 const (
 	New DepositStatus = iota
 	DepositSent
+	Done
 	Failed
+	Returned
 )
 
 var statusToString = map[DepositStatus]string{
 	New:         "NEW",
 	DepositSent: "DEPOSIT_SENT",
+	Done:        "DONE",
 	Failed:      "FAILED",
+	Returned:    "RETURNED",
 }
 
 func (d DepositStatus) String() string {
@@ -30,7 +34,9 @@ func (d DepositStatus) String() string {
 var statusToID = map[string]DepositStatus{
 	"NEW":          New,
 	"DEPOSIT_SENT": DepositSent,
+	"DONE":         Done,
 	"FAILED":       Failed,
+	"RETURNED":     Returned,
 }
 
 func StringToStatus(status string) (DepositStatus, error) {

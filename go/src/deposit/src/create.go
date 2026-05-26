@@ -21,27 +21,33 @@ var DdbSvc = awsutil.NewDynamoClient()
 var ErrDepositAlreadyExists = errors.New("deposit already exists")
 
 func CreateDeposit(request Transaction, requestId string) error {
-	return createDeposit(request, nil, requestId, domain.New)
+	_, err := createDeposit(request, nil, requestId, domain.New)
+	return err
 }
 
-func CreateDepositWithUserData(request Transaction, userData UserData, requestId string) error {
+func CreateDepositWithUserData(request Transaction, userData UserData, requestId string) (string, error) {
 	return createDeposit(request, &userData, requestId, domain.New)
 }
 
 func CreateDepositWithStatus(request Transaction, requestId string, status domain.DepositStatus) error {
-	return createDeposit(request, nil, requestId, status)
+	_, err := createDeposit(request, nil, requestId, status)
+	return err
 }
 
-func createDeposit(request Transaction, userData *UserData, requestId string, status domain.DepositStatus) error {
+func createDeposit(request Transaction, userData *UserData, requestId string, status domain.DepositStatus) (string, error) {
+	depositId := request.GenerateDepositId()
 	newDeposit := Deposit{
-		DepositId:   request.GenerateDepositId(),
+		DepositId:   depositId,
 		Status:      status,
 		Transaction: request,
 	}
 	if userData != nil && userData.Document != "" {
 		newDeposit.UserData = userData
 	}
-	return SaveDeposit(newDeposit, requestId)
+	if err := SaveDeposit(newDeposit, requestId); err != nil {
+		return "", err
+	}
+	return depositId, nil
 }
 
 func SaveDeposit(data Deposit, requestId string) error {

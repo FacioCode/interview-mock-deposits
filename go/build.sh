@@ -7,7 +7,6 @@ export GO111MODULE="on"
 functions=(
   create_new_deposit
   deposit_in_provider
-  stream_consumer
   webhook
 )
 

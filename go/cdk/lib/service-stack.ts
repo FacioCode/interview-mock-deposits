@@ -1,12 +1,10 @@
 import { App, Stack, StackProps, Duration } from 'aws-cdk-lib'
 import { Table, AttributeType } from 'aws-cdk-lib/aws-dynamodb'
-import { StartingPosition } from 'aws-cdk-lib/aws-lambda'
 import { DomainNameAttributes } from 'aws-cdk-lib/aws-apigateway'
 import * as awsApigateway from 'aws-cdk-lib/aws-apigateway'
 import * as awsIam from 'aws-cdk-lib/aws-iam'
 import * as awsEvents from 'aws-cdk-lib/aws-events'
 import * as awsEventsTargets from 'aws-cdk-lib/aws-events-targets'
-import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources'
 import * as utils from './utils'
 import { CriticalAlarmConfig } from './errors'
 
@@ -42,7 +40,6 @@ export class ServiceStack extends Stack {
 
     this.createNewDepositLambda(eventBus, table, env)
     this.createWebhookLambda(api, table, env)
-    this.createStreamConsumerLambda(table, env)
     this.createDepositInProviderLambda(eventBus, table, env)
   }
 
@@ -68,8 +65,15 @@ export class ServiceStack extends Stack {
   // delegation to a src/ package mirror the deposit_in_provider shape so
   // candidates have a complete worked example to model on.
   private createNewDepositLambda (eventBus: awsEvents.EventBus, table: Table, env: Record<string, any>) {
+    const initialPolicy = [
+      new awsIam.PolicyStatement({
+        actions: ['events:PutEvents'],
+        resources: [eventBus.eventBusArn],
+        effect: awsIam.Effect.ALLOW
+      })
+    ]
     const lambda = utils.createLambdaWithDynamoAccess(
-      this, 'createNewDeposit', 'create_new_deposit', table, [], env, Duration.seconds(30), CriticalAlarmConfig
+      this, 'createNewDeposit', 'create_new_deposit', table, initialPolicy, env, Duration.seconds(30), CriticalAlarmConfig
     )
     const rule = new awsEvents.Rule(this, 'pendingTransactionRule', {
       eventBus,
@@ -86,24 +90,6 @@ export class ServiceStack extends Stack {
       this, 'webhook', 'webhook', table, [], env, Duration.seconds(30), CriticalAlarmConfig
     )
     api.root.addResource('webhook').addMethod('POST', new awsApigateway.LambdaIntegration(lambda))
-  }
-
-  private createStreamConsumerLambda (table: Table, env: Record<string, any>) {
-    const initialPolicy = [
-      new awsIam.PolicyStatement({
-        actions: ['events:PutEvents'],
-        resources: ['*'],
-        effect: awsIam.Effect.ALLOW
-      })
-    ]
-    const lambda = utils.createLambdaWithDynamoAccess(
-      this, 'streamConsumer', 'stream_consumer', table, initialPolicy, env, Duration.minutes(15), CriticalAlarmConfig, 2
-    )
-    lambda.addEventSource(new DynamoEventSource(table, {
-      startingPosition: StartingPosition.TRIM_HORIZON,
-      batchSize: 1,
-      retryAttempts: 2
-    }))
   }
 
   private createDepositInProviderLambda (eventBus: awsEvents.EventBus, table: Table, env: Record<string, any>) {

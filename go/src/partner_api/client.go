@@ -28,7 +28,6 @@ var (
 )
 
 const (
-	StatusPending   = "PENDING"
 	StatusConfirmed = "CONFIRMED"
 )
 
@@ -68,10 +67,10 @@ func partnerBaseURL() string {
 	return "https://api.partner.example.com"
 }
 
-// Pay runs the two-step partner flow: create a pending transfer, then
-// close it. Returns CONFIRMED on full success; if create succeeded but
-// close failed, returns the transferId with status PENDING so the
-// caller can decide whether to retry just the close step.
+// Pay runs the two-step partner flow: create a transfer, then close it.
+// Returns CONFIRMED on full success; any failure (including a failed
+// close after a successful create) returns a zero-value TransferResult
+// and a typed error.
 func Pay(ctx context.Context, req TransferRequest) (TransferResult, error) {
 	secrets, err := GetPartnerSecrets()
 	if err != nil {
@@ -84,8 +83,7 @@ func Pay(ctx context.Context, req TransferRequest) (TransferResult, error) {
 	}
 
 	if err := CloseTransferFunc(ctx, secrets, transferId); err != nil {
-		return TransferResult{ID: transferId, Status: StatusPending},
-			fmt.Errorf("close transfer: %w", err)
+		return TransferResult{}, fmt.Errorf("close transfer: %w", err)
 	}
 
 	return TransferResult{ID: transferId, Status: StatusConfirmed}, nil

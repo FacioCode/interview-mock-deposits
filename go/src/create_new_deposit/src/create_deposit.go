@@ -38,5 +38,16 @@ func CreateDeposit(event events.PendingTransactionEvent, requestId string) error
 		},
 	}
 
-	return deposit.CreateDepositWithUserData(transaction, userData, requestId)
+	depositId, err := deposit.CreateDepositWithUserData(transaction, userData, requestId)
+	if err != nil {
+		return err
+	}
+
+	// mock event publication (EventBridge PutEvents)
+	logrus.WithFields(logrus.Fields{
+		"detailType": events.DepositRequestedType,
+		"depositId":  depositId,
+	}).Info("event would be published")
+
+	return nil
 }

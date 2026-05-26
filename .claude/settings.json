@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./test.sh*)",
+      "Bash(./with-dynamodb-local.sh*)",
+      "Bash(./build.sh)",
+      "Bash(go test*)",
+      "Bash(go build*)",
+      "Bash(go run*)",
+      "Bash(go mod*)",
+      "Bash(go vet*)",
+      "Bash(gofmt*)",
+      "Bash(npm install*)",
+      "Bash(npm run*)",
+      "Bash(npm test*)",
+      "Bash(npx cdk*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(grep*)",
+      "Bash(find*)",
+      "Bash(ls*)",
+      "Bash(cat*)"
+    ]
+  }
+}
